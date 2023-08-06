@@ -7,6 +7,9 @@
 #include <string.h>
 #include "UdpServer.h"
 
+#define DEFAULT_LISTEN_PORT (8001)
+#define DEFAULT_MAX_PAYLOAD_LENGTH (2048)
+
 // This structure is used to consolidate user parameters.
 struct MyParameters
 {
@@ -91,10 +94,10 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   // Default parameters.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Default a resonable port.
-  *parameters.listenPortPtr = 8001;
+  *parameters.listenPortPtr = DEFAULT_LISTEN_PORT;
 
   // Default to 2048 octets.
-  *parameters.maxPayloadLengthPtr = 2048;
+  *parameters.maxPayloadLengthPtr = DEFAULT_MAX_PAYLOAD_LENGTH;
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   // Set up for loop entry.
