@@ -1,6 +1,23 @@
 //**********************************************************************
-// file name: test.cc
+// file name: udpServer.cc
 //**********************************************************************
+
+//*************************************************************************
+// This program provides the functionality of a UDP server.  When a
+// UDP datagram arrives, the payload of the datagram will be sent to
+// stdout.  This allows the output to be piped to another program.
+//
+// To run this program type,
+// 
+//     ./udpServer -p <listenport> -m <maxpayloadlength>
+//
+// where,
+//
+//    listenport - the port number for which the server will listen.
+//
+//    maxpayloadlength - The maximum amount of octets that will be
+//    read when a UDP datagram arrives.
+//*************************************************************************
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,7 +145,7 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
       case 'h':
       {
         // Display usage.
-        fprintf(stderr,"./udpClient -p <listenport> -m <maxpayloadlength>\n");
+        fprintf(stderr,"./udpServer -p <listenport> -m <maxpayloadlength>\n");
 
         // Indicate that program must be exited.
         exitProgram = true;
@@ -180,8 +197,8 @@ int main(int argc,char **argv)
 
   if (!networkInterfacePtr->connectionIsEstablished())
   {
-    fprintf(stderr,"Failed to open socket\n");
-    return (-2);
+    fprintf(stderr,"Failed to establish link\n");
+    return (-1);
   } // if
 
   // Receive messages.

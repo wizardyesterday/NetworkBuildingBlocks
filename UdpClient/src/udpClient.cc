@@ -1,20 +1,39 @@
 //**********************************************************************
-// file name: test.cc
+// file name: udpClient.cc
 //**********************************************************************
+
+
+//*************************************************************************
+// This program provides the functionality of a UDP client.  The program
+// reads its input from stdin and sends a UDP datagram with the payload
+// equal to the contents of what was read from stdin.
+//
+// To run this program type,
+// 
+//     ./udpClient -p <listenport> -m <maxpayloadlength>
+//
+// where,
+//
+//    listenport - the port number for which the server will listen.
+//
+//    maxpayloadlength - The maximum amount of octets that will be
+//    read when a UDP datagram arrives.
+//*************************************************************************
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "UdpClient.h"
 
-#define DEFAULT_HOST_IP_ADDRESS "192.93.16.87"
-#define DEFAULT_HOST_PORT (8001)
+#define DEFAULT_SERVER_IP_ADDRESS "192.93.16.87"
+#define DEFAULT_SERVER_PORT (8001)
+#define MAX_PAYLOAD_LENGTH (2048)
 
 // This structure is used to consolidate user parameters.
 struct MyParameters
 {
-  char *hostIpAddressPtr;
-  int *hostPortPtr;
+  char *serverIpAddressPtr;
+  int *serverPortPtr;
 };
 
 /*****************************************************************************
@@ -51,11 +70,11 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Default parameters.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // The host IP address.
-  strcpy(parameters.hostIpAddressPtr,DEFAULT_HOST_IP_ADDRESS);
+  // The server IP address.
+  strcpy(parameters.serverIpAddressPtr,DEFAULT_SERVER_IP_ADDRESS);
  
-  // The host listener port.
-  *parameters.hostPortPtr = DEFAULT_HOST_PORT;
+  // The server listener port.
+  *parameters.serverPortPtr = DEFAULT_SERVER_PORT;
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   // Set up for loop entry.
@@ -74,22 +93,22 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
       case 'a':
       {
         // Retrieve the IP address.        
-        strcpy(parameters.hostIpAddressPtr,optarg);
+        strcpy(parameters.serverIpAddressPtr,optarg);
         break;
       } // case
 
       case 'p':
       {
         // Retrieve the host listener port.
-        *parameters.hostPortPtr = atoi(optarg);
+        *parameters.serverPortPtr = atoi(optarg);
         break;
       } // case
 
       case 'h':
       {
         // Display usage.
-        fprintf(stderr,"./radioDiags -a <hostIpAddress: x.x.x.x> "
-                "-p <hostPort>\n");
+        fprintf(stderr,"./udpClient -a <serverIpAddress: x.x.x.x> "
+                "-p <serverPort>\n");
 
         // Indicate that program must be exited.
         exitProgram = true;
@@ -121,14 +140,14 @@ int main(int argc,char **argv)
   bool success;
   uint32_t count;
   char inputBuffer[16384];
-  int hostPort;
-  char hostIpAddress[32];
+  int serverPort;
+  char serverIpAddress[32];
   UdpClient *networkInterfacePtr;
   struct MyParameters parameters;
 
   // Set up for parameter transmission.
-  parameters.hostPortPtr = &hostPort;
-  parameters.hostIpAddressPtr = hostIpAddress;
+  parameters.serverPortPtr = &serverPort;
+  parameters.serverIpAddressPtr = serverIpAddress;
 
   // Retrieve the system parameters.
   exitProgram = getUserArguments(argc,argv,parameters);
@@ -140,12 +159,12 @@ int main(int argc,char **argv)
   } // if
 
   // Create UDP client object.
-  networkInterfacePtr = new UdpClient(hostIpAddress,hostPort);
+  networkInterfacePtr = new UdpClient(serverIpAddress,serverPort);
 
   if (!networkInterfacePtr->connectionIsEstablished())
   {
-    fprintf(stderr,"Failed to open socket\n");
-    return (-2);
+    fprintf(stderr,"Failed to establish link\n");
+    return (-1);
   } // if
 
   // Set up for loop entry.
@@ -154,7 +173,7 @@ int main(int argc,char **argv)
   while (!done)
   {
     // Read the data.
-    count = fread(inputBuffer,sizeof(char),2048,stdin);
+    count = fread(inputBuffer,sizeof(char),MAX_PAYLOAD_LENGTH,stdin);
 
     if (count == 0)
     {
@@ -164,7 +183,9 @@ int main(int argc,char **argv)
     else
     {
       // Send the message.
-      success = networkInterfacePtr->sendData(inputBuffer,count,2048);
+      success = networkInterfacePtr->sendData(inputBuffer,
+                                              count,
+                                              MAX_PAYLOAD_LENGTH);
     } // else
   } // while
 
