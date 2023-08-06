@@ -113,7 +113,7 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   // Default a resonable port.
   *parameters.listenPortPtr = DEFAULT_LISTEN_PORT;
 
-  // Default to 2048 octets.
+  // Default to to something reasonable.
   *parameters.maxPayloadLengthPtr = DEFAULT_MAX_PAYLOAD_LENGTH;
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 

@@ -2,7 +2,6 @@
 // file name: udpClient.cc
 //**********************************************************************
 
-
 //*************************************************************************
 // This program provides the functionality of a UDP client.  The program
 // reads its input from stdin and sends a UDP datagram with the payload
@@ -17,7 +16,7 @@
 //    listenport - the port number for which the server will listen.
 //
 //    maxpayloadlength - The maximum amount of octets that will be
-//    read when a UDP datagram arrives.
+//    sent in a UDP datagram.
 //*************************************************************************
 
 #include <stdio.h>
@@ -27,13 +26,14 @@
 
 #define DEFAULT_SERVER_IP_ADDRESS "192.93.16.87"
 #define DEFAULT_SERVER_PORT (8001)
-#define MAX_PAYLOAD_LENGTH (2048)
+#define DEFAULT_MAX_PAYLOAD_LENGTH (2048)
 
 // This structure is used to consolidate user parameters.
 struct MyParameters
 {
   char *serverIpAddressPtr;
   int *serverPortPtr;
+  int *maxPayloadLengthPtr;
 };
 
 /*****************************************************************************
@@ -75,6 +75,9 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
  
   // The server listener port.
   *parameters.serverPortPtr = DEFAULT_SERVER_PORT;
+
+  // Default to to something reasonable.
+  *parameters.maxPayloadLengthPtr = DEFAULT_MAX_PAYLOAD_LENGTH;
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   // Set up for loop entry.
@@ -86,7 +89,7 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   while (!done)
   {
     // Retrieve the next option.
-    opt = getopt(argc,argv,"a:p:h");
+    opt = getopt(argc,argv,"a:p:m:h");
 
     switch (opt)
     {
@@ -104,11 +107,17 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
         break;
       } // case
 
+      case 'm':
+      {
+        *parameters.maxPayloadLengthPtr = atoi(optarg);
+        break;
+      } // case
+
       case 'h':
       {
         // Display usage.
         fprintf(stderr,"./udpClient -a <serverIpAddress: x.x.x.x> "
-                "-p <serverPort>\n");
+                "-p <serverPort> -m <maxpayloadlength>\n");
 
         // Indicate that program must be exited.
         exitProgram = true;
@@ -141,6 +150,7 @@ int main(int argc,char **argv)
   uint32_t count;
   char inputBuffer[16384];
   int serverPort;
+  int maxPayloadLength;
   char serverIpAddress[32];
   UdpClient *networkInterfacePtr;
   struct MyParameters parameters;
@@ -148,6 +158,7 @@ int main(int argc,char **argv)
   // Set up for parameter transmission.
   parameters.serverPortPtr = &serverPort;
   parameters.serverIpAddressPtr = serverIpAddress;
+  parameters.maxPayloadLengthPtr = &maxPayloadLength;
 
   // Retrieve the system parameters.
   exitProgram = getUserArguments(argc,argv,parameters);
@@ -159,7 +170,9 @@ int main(int argc,char **argv)
   } // if
 
   // Create UDP client object.
-  networkInterfacePtr = new UdpClient(serverIpAddress,serverPort);
+  networkInterfacePtr = new UdpClient(serverIpAddress,
+                                      serverPort,
+                                      maxPayloadLength);
 
   if (!networkInterfacePtr->connectionIsEstablished())
   {
@@ -173,7 +186,7 @@ int main(int argc,char **argv)
   while (!done)
   {
     // Read the data.
-    count = fread(inputBuffer,sizeof(char),MAX_PAYLOAD_LENGTH,stdin);
+    count = fread(inputBuffer,sizeof(char),maxPayloadLength,stdin);
 
     if (count == 0)
     {
@@ -183,9 +196,7 @@ int main(int argc,char **argv)
     else
     {
       // Send the message.
-      success = networkInterfacePtr->sendData(inputBuffer,
-                                              count,
-                                              MAX_PAYLOAD_LENGTH);
+      success = networkInterfacePtr->sendData(inputBuffer,count);
     } // else
   } // while
 

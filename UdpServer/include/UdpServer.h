@@ -17,7 +17,7 @@ class UdpServer
 {
   public:
 
-  UdpServer(int port,int payloadSize,
+  UdpServer(int port,int maxPayloadLenth,
             void (*receiveCallbackPtr)(sockaddr *peerAddressPtr,
                                        void *bufferPtr,
                                        uint32_t bufferLength));
@@ -33,7 +33,7 @@ class UdpServer
   struct sockaddr_in myAddress;
   struct sockaddr_in peerAddress;
 
-  socklen_t maxPayloadSize;
+  socklen_t maxPayloadLenth;
   unsigned char receiveBuffer[65536];
 
   // Receive callback support.  This allows an application to send a reply.

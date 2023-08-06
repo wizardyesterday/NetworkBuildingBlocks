@@ -16,17 +16,19 @@ class UdpClient
 {
   public:
 
-  UdpClient(char *ipAddressPtr,int port);
+  UdpClient(char *ipAddressPtr,int port,int maxPayloadLength);
   ~UdpClient(void);
 
   bool connectionIsEstablished(void);
-  bool sendData(void *bufferPtr,int bufferLength,int blockSize);
+  bool sendData(void *bufferPtr,int bufferLength);
 
   private:
 
   // Attributes
   int socketDescriptor;
   struct sockaddr_in peerAddress;
+
+  socklen_t maxPayloadLength;
 };
 
 #endif // _UDPCLIENT_H_

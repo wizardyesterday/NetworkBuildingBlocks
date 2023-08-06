@@ -14,21 +14,25 @@
   successful, populates the peer address structure with the appropriate
   information.
 
-  Calling Sequence: UdpServer(port,maxPayloadSize)
+  Calling Sequence: UdpServer(port,maxPayloadLength)
 
   Inputs:
 
     port - The port number for this server to listen to.
 
-    maxPayloadSize - The maximum payload that this server will accept
-    from a UDP datagram.
+    maxPayloadLength - The maximum payload lengththat this server will
+    accept from a UDP datagram.  In other words, this server will
+    attempt to read maxPayloadLength octets from the socket buffer.
+    As an example, if a value of 1 is chosen for this parameter, it
+    is possible to get bogged down with system calls, and the result
+    will be dropped UDP datagrams.
 
   Outputs:
 
     None.
 
 **************************************************************************/
-UdpServer::UdpServer(int port,int maxPayloadSize,
+UdpServer::UdpServer(int port,int maxPayloadLenth,
   void (*receiveCallbackPtr)(sockaddr *peerAddressPtr,
                              void *bufferPtr,
                              uint32_t bufferLength))
@@ -38,8 +42,14 @@ UdpServer::UdpServer(int port,int maxPayloadSize,
   void *kludgePtr;
   sockaddr *myAddressPtr;
 
+  if (maxPayloadLenth > 32768)
+  {
+    // Keep it reasonable.
+    maxPayloadLenth = 32768;
+  } // if
+
   // Save in the attributes.
-  this->maxPayloadSize = maxPayloadSize;
+  this->maxPayloadLenth = maxPayloadLenth;
   this->receiveCallbackPtr = receiveCallbackPtr;
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -60,7 +70,13 @@ UdpServer::UdpServer(int port,int maxPayloadSize,
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   // Let's make a large enough buffer.
-  bufferLength = maxPayloadSize;
+  bufferLength = maxPayloadLenth;
+
+  if (bufferLength < 2048)
+  {
+    // Make it reasonable.
+    bufferLength = 2048;
+  } // if
 
   // Create UDP socket.
   socketDescriptor = socket(PF_INET,SOCK_DGRAM,0);
@@ -227,7 +243,7 @@ void UdpServer::receiveData(void)
     {
       count = recvfrom(socketDescriptor,
                        receiveBuffer,
-                       maxPayloadSize,
+                       maxPayloadLenth,
                        0,
                        peerAddressPtr,
                        &peerAddressLength);

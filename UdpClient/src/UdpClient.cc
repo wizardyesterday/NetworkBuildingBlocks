@@ -24,15 +24,27 @@
 
     port - The port number for the link partner listener.
 
+    maxPayloadLength - The maximum payload length of a UDP datagram
+    that is sent.
+
   Outputs:
 
     None.
 
 **************************************************************************/
-UdpClient::UdpClient(char *ipAddressPtr,int port)
+UdpClient::UdpClient(char *ipAddressPtr,int port,int maxPayloadLength)
 {
   int bufferLength;
   int status;
+
+  if (maxPayloadLength > 32768)
+  {
+    // Keep it reasonable.
+    maxPayloadLength = 32768;
+  } // if
+
+  // Save for later.
+  this->maxPayloadLength = maxPayloadLength;
 
   // Let's make a large enough buffer.
   bufferLength = 32768;
@@ -151,13 +163,6 @@ bool UdpClient::connectionIsEstablished(void)
 
     bufferLength - The number of octets to send.
 
-    blockSize - The size of the payload of a UDP datagram.  Sometimes,
-    the link partner might be an app, such as netcat, that reads its
-    input from stdin, and sends 2048-octet payloads.  The receiver
-    also expects this 2048-octet payload, and it will read 2048 bytes
-    from stdin.  Any other length payload, that is sent, just won't
-    work. 
-
   Outputs:
 
     success - An indicator of the outcome of the operation.  A value of
@@ -165,27 +170,23 @@ bool UdpClient::connectionIsEstablished(void)
     indicates that the operation was not successful.
 
 **************************************************************************/
-bool UdpClient::sendData(void *bufferPtr,int bufferLength,int blockSize)
+bool UdpClient::sendData(void *bufferPtr,int bufferLength)
 {
   bool success;
   bool failureOccurred;
   ssize_t count;
   int i;
+  int blockSize;
   int numberOfBlocks;
   int remainder;
   unsigned char *octetPtr;
 
-  if (blockSize > 2048)
-  {
-    // Restrict the length to be nice to netcat.
-    blockSize = 2048;
-  } // if
-
   // Reference the buffer in the octet context.
   octetPtr = (unsigned char *)bufferPtr;
 
-  numberOfBlocks = bufferLength / blockSize;
-  remainder = bufferLength % blockSize;
+  numberOfBlocks = bufferLength / maxPayloadLength;
+  remainder = bufferLength % maxPayloadLength;
+  blockSize = maxPayloadLength;
 
   // Default to failure.
   success = false;
