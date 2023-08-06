@@ -102,6 +102,12 @@ UdpServer::UdpServer(int port,int maxPayloadLenth,
                           SO_RCVBUF,
                           &bufferLength,
                           sizeof(int));
+
+      if (status != 0)
+      {
+        // Indicate that the socket has not been opened.
+        socketDescriptor = 0;
+      } // if
     } // if
     else
     {
