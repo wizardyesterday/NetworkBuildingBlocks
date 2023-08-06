@@ -9,13 +9,13 @@
 //
 // To run this program type,
 // 
-//     ./udpClient -p <listenport> -m <maxpayloadlength>
+//     ./udpClient -p <listenPort> -m <maxPayloadLength>
 //
 // where,
 //
-//    listenport - the port number for which the server will listen.
+//    listenPort - the port number for which the server will listen.
 //
-//    maxpayloadlength - The maximum amount of octets that will be
+//    maxPayloadLength - The maximum amount of octets that will be
 //    sent in a UDP datagram.
 //*************************************************************************
 
