@@ -68,6 +68,15 @@ UdpClient::UdpClient(char *ipAddressPtr,int port,int maxPayloadLength)
                         SO_SNDBUF,
                         &bufferLength,
                         sizeof(int));
+
+    if (status == -1)
+    {
+      // We don't leave open descriptors.
+      close(socketDescriptor);
+
+      // Indicate that the socket has not been opened.
+      socketDescriptor = 0;
+    } // if
   } // if
   else
   {

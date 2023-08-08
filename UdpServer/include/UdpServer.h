@@ -33,7 +33,7 @@ class UdpServer
   struct sockaddr_in myAddress;
   struct sockaddr_in peerAddress;
 
-  socklen_t maxPayloadLenth;
+  size_t maxPayloadLenth;
   unsigned char receiveBuffer[65536];
 
   // Receive callback support.  This allows an application to send a reply.

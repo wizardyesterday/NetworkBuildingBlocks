@@ -28,7 +28,7 @@ class UdpClient
   int socketDescriptor;
   struct sockaddr_in peerAddress;
 
-  socklen_t maxPayloadLength;
+  size_t maxPayloadLength;
 };
 
 #endif // _UDPCLIENT_H_
