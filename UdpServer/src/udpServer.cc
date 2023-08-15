@@ -9,14 +9,11 @@
 //
 // To run this program type,
 // 
-//     ./udpServer -p <listenPort> -m <maxPayloadLength>
+//     ./udpServer -p <listenPort>
 //
 // where,
 //
 //    listenPort - the port number for which the server will listen.
-//
-//    maxPayloadLength - The maximum amount of octets that will be
-//    read when a UDP datagram arrives.
 //*************************************************************************
 
 #include <stdio.h>
@@ -25,13 +22,11 @@
 #include "UdpServer.h"
 
 #define DEFAULT_LISTEN_PORT (8001)
-#define DEFAULT_MAX_PAYLOAD_LENGTH (2048)
 
 // This structure is used to consolidate user parameters.
 struct MyParameters
 {
   int *listenPortPtr;
-  int *maxPayloadLengthPtr;
 };
 
 /**************************************************************************
@@ -112,9 +107,6 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Default a resonable port.
   *parameters.listenPortPtr = DEFAULT_LISTEN_PORT;
-
-  // Default to to something reasonable.
-  *parameters.maxPayloadLengthPtr = DEFAULT_MAX_PAYLOAD_LENGTH;
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   // Set up for loop entry.
@@ -126,7 +118,7 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
   while (!done)
   {
     // Retrieve the next option.
-    opt = getopt(argc,argv,"p:m:h");
+    opt = getopt(argc,argv,"p:h");
 
     switch (opt)
     {
@@ -136,16 +128,10 @@ bool getUserArguments(int argc,char **argv,struct MyParameters parameters)
         break;
       } // case
 
-      case 'm':
-      {
-        *parameters.maxPayloadLengthPtr = atoi(optarg);
-        break;
-      } // case
-
       case 'h':
       {
         // Display usage.
-        fprintf(stderr,"./udpServer -p <listenport> -m <maxpayloadlength>\n");
+        fprintf(stderr,"./udpServer -p <listenport>\n");
 
         // Indicate that program must be exited.
         exitProgram = true;
@@ -173,13 +159,11 @@ int main(int argc,char **argv)
 {
   bool exitProgram;
   int listenPort;
-  int maxPayloadLength;
   UdpServer *networkInterfacePtr;
   struct MyParameters parameters;
 
  // Set up for parameter transmission.
   parameters.listenPortPtr = &listenPort;
-  parameters.maxPayloadLengthPtr = &maxPayloadLength;
 
   // Retrieve the system parameters.
   exitProgram = getUserArguments(argc,argv,parameters);
@@ -191,9 +175,7 @@ int main(int argc,char **argv)
   } // if
 
   // Create UDP server object.
-  networkInterfacePtr = new UdpServer(listenPort,
-                                      maxPayloadLength,
-                                      receiveCallback);
+  networkInterfacePtr = new UdpServer(listenPort,receiveCallback);
 
   if (!networkInterfacePtr->connectionIsEstablished())
   {

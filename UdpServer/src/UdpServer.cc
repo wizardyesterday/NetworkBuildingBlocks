@@ -14,25 +14,21 @@
   successful, populates the peer address structure with the appropriate
   information.
 
-  Calling Sequence: UdpServer(port,maxPayloadLength)
+  Calling Sequence: UdpServer(port,receiveCallbackPtr)
 
   Inputs:
 
     port - The port number for this server to listen to.
 
-    maxPayloadLength - The maximum payload lengththat this server will
-    accept from a UDP datagram.  In other words, this server will
-    attempt to read maxPayloadLength octets from the socket buffer.
-    As an example, if a value of 1 is chosen for this parameter, it
-    is possible to get bogged down with system calls, and the result
-    will be dropped UDP datagrams.
+    receiveCallbackPtr - A pointer to a callback function that will
+    be invoked when a UDP datagram arrives.
 
   Outputs:
 
     None.
 
 **************************************************************************/
-UdpServer::UdpServer(int port,int maxPayloadLenth,
+UdpServer::UdpServer(int port,
   void (*receiveCallbackPtr)(sockaddr *peerAddressPtr,
                              void *bufferPtr,
                              uint32_t bufferLength))
@@ -42,14 +38,7 @@ UdpServer::UdpServer(int port,int maxPayloadLenth,
   void *kludgePtr;
   sockaddr *myAddressPtr;
 
-  if (maxPayloadLenth > 32768)
-  {
-    // Keep it reasonable.
-    maxPayloadLenth = 32768;
-  } // if
-
-  // Save in the attributes.
-  this->maxPayloadLenth = maxPayloadLenth;
+  // Save this for later.
   this->receiveCallbackPtr = receiveCallbackPtr;
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -70,13 +59,7 @@ UdpServer::UdpServer(int port,int maxPayloadLenth,
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   // Let's make a large enough buffer.
-  bufferLength = maxPayloadLenth;
-
-  if (bufferLength < 2048)
-  {
-    // Make it reasonable.
-    bufferLength = 2048;
-  } // if
+  bufferLength = PAYLOAD_READ_LENGTH;
 
   // Create UDP socket.
   socketDescriptor = socket(PF_INET,SOCK_DGRAM,0);
@@ -249,13 +232,16 @@ void UdpServer::receiveData(void)
     {
       count = recvfrom(socketDescriptor,
                        receiveBuffer,
-                       maxPayloadLenth,
+                       PAYLOAD_READ_LENGTH,
                        0,
                        peerAddressPtr,
                        &peerAddressLength);
 
-      // Notify the higher level client application.
-      receiveCallbackPtr(peerAddressPtr,receiveBuffer,count);
+      if (receiveCallbackPtr != NULL)
+      {
+        // Notify the higher level client application.
+        receiveCallbackPtr(peerAddressPtr,receiveBuffer,count);
+      } // if
     } // while
   } // if
 

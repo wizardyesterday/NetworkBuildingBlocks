@@ -13,11 +13,18 @@
 #include <arpa/inet.h>
 #include <string.h>
 
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// I originally had a default value of 2048.  This resulted in dropping
+// UDP datagrams when I set up the UDP client to send a payload of 1
+// octet per datagram.  This value improved performance significantly.
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+#define PAYLOAD_READ_LENGTH (32768)
+
 class UdpServer
 {
   public:
 
-  UdpServer(int port,int maxPayloadLenth,
+  UdpServer(int port,
             void (*receiveCallbackPtr)(sockaddr *peerAddressPtr,
                                        void *bufferPtr,
                                        uint32_t bufferLength));
@@ -33,8 +40,7 @@ class UdpServer
   struct sockaddr_in myAddress;
   struct sockaddr_in peerAddress;
 
-  size_t maxPayloadLenth;
-  unsigned char receiveBuffer[65536];
+  unsigned char receiveBuffer[PAYLOAD_READ_LENGTH];
 
   // Receive callback support.  This allows an application to send a reply.
   void (*receiveCallbackPtr)(sockaddr *peerAddressPtr,
